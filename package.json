@@ -1,0 +1,29 @@
+{
+  "name": "joi-errors-for-forms",
+  "version": "0.0.1",
+  "description": "Convert Joi errors to the { name1: text, name2: text } format commonly used with forms.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./test1.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eddyystop/joi-errors-for-forms.git"
+  },
+  "keywords": [
+    "joi",
+    "error",
+    "errors",
+    "form",
+    "forms"
+  ],
+  "author": "John Szwaronek <johnsz9999@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eddyystop/joi-errors-for-forms/issues"
+  },
+  "homepage": "https://github.com/eddyystop/joi-errors-for-forms#readme",
+  "engines": {
+    "node": ">4.2.4"
+  }
+}
