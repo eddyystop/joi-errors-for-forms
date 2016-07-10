@@ -1,7 +1,7 @@
 {
   "name": "joi-errors-for-forms",
   "version": "0.2.0",
-  "description": "Convert Joi errors to { name1: text, name2: text } or to mongoose-like formats.",
+  "description": "Convert Joi errors to form UI or Mongoose schemas, optionally changing the message text.",
   "main": "index.js",
   "scripts": {
     "test": "node test1.js"
@@ -15,7 +15,8 @@
     "error",
     "errors",
     "form",
-    "forms"
+    "forms",
+    "i18n"
   ],
   "author": "John Szwaronek <johnsz9999@gmail.com>",
   "license": "MIT",

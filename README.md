@@ -5,7 +5,7 @@ convert the error objects returned by [Joi](https://github.com/hapijs/joi) to ei
 
 - the `{ name1: text, name2: text }` schema commonly used with form UIs, or
 - the Mongoose schema
-`{ name1: { message: ..., name: 'ValidatorError', path: path, type: detail.type} }`.
+`{ name1: { message: ..., name: 'ValidatorError', path: ..., type: ... } }`.
 
 The Joi error messages may also be replaced either for clarity or internationalization.
 
@@ -18,7 +18,7 @@ The package has no dependencies.
 (1) Convert the Joi error messages to the form UI schema, retaining the original message text.
 
 ```javascript
-const Joi = require("joi");
+const Joi = require('joi');
 const name = Joi.string().trim().max(1).regex(/^[\sa-zA-Z0-9]{5,30}$/).required();
 const password = Joi.string().trim().min(2).max(30).required();
 const schema = Joi.object().keys({
@@ -27,11 +27,11 @@ const schema = Joi.object().keys({
   confirmPassword: password.label('Confirm password'),
 });
 
-const joiToForms = require("joi-errors-to-forms").forms;
+const joiToForms = require('joi-errors-to-forms').forms;
 const convertToForms = joiToForms();
 
 Joi.validate(values, schema, options, (joiErr, convertedValues) => {
-  console.log(convertToForms(joiErr)); // <-- package related
+  console.log(convertToForms(joiErr));
   // { name: '"name" with value "j" fails to match the required pattern: /^[\\sa-zA-Z0-9]{5,30}$/',
   //   password: '"password" length must be at least 2 characters long',
   //   confirmPassword: '"Confirm password" length must be at least 2 characters long'
@@ -40,10 +40,10 @@ Joi.validate(values, schema, options, (joiErr, convertedValues) => {
 ```
 
 
-(2) Replace Joi error messages to the form UI schema, using Joi error types. (Recommended.)
+(2) Convert to the form UI schema. Replace Joi error messages using Joi error types. (Recommended.)
 
 ```javascript
-const joiToForms = require("joi-errors-to-forms").forms;
+const joiToForms = require('joi-errors-to-forms').forms;
 const convertToForms = joiToForms({
   'string.min': function() {
     return i18n('"${key}" must be ${limit} or more chars.');
@@ -68,20 +68,12 @@ function i18n(str) { return str; } // internationalization
 
 ```
 
-or to the Mongoose schema.
+or convert to the Mongoose schema.
 
 ```javascript
-const joiToMongoose = require("joi-errors-to-forms").mongoose;
+const joiToMongoose = require('joi-errors-to-forms').mongoose;
 const convertToMongoose = joiToMongoose({
-  'string.min': function() {
-    return i18n('"${key}" must be ${limit} or more chars.');
-  },
-  'string.regex.base': function(c) {
-    switch (c.pattern.toString()) {
-      case /^[\sa-zA-Z0-9]{5,30}$/.toString():
-        return i18n('"${key}" must consist of letters, digits or spaces.');
-    }
-  }
+  ... same as above ...
 });
 
 Joi.validate(values, schema, options, (joiErr, convertedValues) => {
@@ -106,7 +98,7 @@ Joi.validate(values, schema, options, (joiErr, convertedValues) => {
 
 ```
 
-List of substitution tokens. Refer to Joi doc for more information.
+List of substitution tokens. Refer to Joi documentation for more information.
 
 - `${key}` prop name, or label if `.label('...')` was used.
 - `${value}` prop value. Its rudimentally converted to a string.
@@ -114,7 +106,7 @@ List of substitution tokens. Refer to Joi doc for more information.
 - `${limit}` allowed length of string.
 - `${encoding}` string encoding. Could be `undefined`. Its converted to a string.
 
-Note that in the Mongoose schema, `type` retains the Joi value.
+Note that `type` retains the Joi value in the Mongoose schema.
 It is not converted to what Mongoose would return.
 
 
@@ -134,7 +126,7 @@ Joi.validate(values, schema, options, (joiErr, convertedValues) => {
 ```
 
 
-(4) Replace Joi error messages, using substrings in Joi messages.
+(4) Replace Joi error messages, by searching for substrings in Joi messages.
 
 ```javascript
 const convertToForms = joiToForms([
@@ -156,63 +148,21 @@ Joi.validate(values, schema, options, (joiErr, convertedValues) => {
 
 ```
 
-
-(5) Convert the Joi error messages to the Mongoose schema, using Joi error types. (Recommended.)
-
-```javascript
-const joiToMongoose = joiErrorsToForms.mongoose;
-function i18n(str) { return str; } // internationalization
-
-const convertToMongoose = joiToMongoose({
-  'string.min': function() {
-    return i18n('"${key}" must be ${limit} or more chars.');
-  },
-  'string.regex.base': function(c) {
-    switch (c.pattern.toString()) {
-      case /^[\sa-zA-Z0-9]{5,30}$/.toString():
-        return i18n('"${key}" must consist of letters, digits or spaces.');
-    }
-  }
-});
-
-Joi.validate(values, schema, options, (joiErr, convertedValues) => {
-  console.log(convertToMongoose(joiErr));
-  // { name: 
-  //     { message: '"name" must consist of letters, digits or spaces.',
-  //       name: 'ValidatorError',
-  //       path: 'name',
-  //       type: 'string.regex.base' },
-  //   password: 
-  //     { message: '"password" must be 2 or more chars.',
-  //       name: 'ValidatorError',
-  //       path: 'password',
-  //       type: 'string.min' },
-  //   confirmPassword: 
-  //     { message: '"Confirm password" must be 2 or more chars.',
-  //       name: 'ValidatorError',
-  //       path: 'confirmPassword',
-  //       type: 'string.min' }
-  // }
-});
-
-```
-
-
 ## Motivation
 
-[Joi](https://github.com/hapijs/joi) is an enterprise strength schema validator and sanitizer.
-The error object it returns, however, usually has to be reformatted for use with web/mobile forms.
+[Joi](https://github.com/hapijs/joi) is an enterprise strength schema validator and sanitizer
+originally developed by Walmart.
 
-This package converts Joi errors to the commonly used { name1: text, name2: text } format.
+The error object it returns, however, usually has to be reformatted for use within web/mobile apps.
+Its error messages may also have to be converted for internationalization or for clarity.
 
-This package also allows you to replace selected Joi messages,
-either to make them clearer or for internationalization.
+This package helps with both needs.
 
 ## Installation
 
 Install [Nodejs](https://nodejs.org/en/).
 
-Run `npm install feathers-hooks-validate-joi --save` in your project folder.
+Run `npm install joi-errors-for-forms --save` in your project folder.
 
 You can then require the package.
 
