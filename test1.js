@@ -1,5 +1,5 @@
 
-var forForms = require('./index');
+var forForms = require('./index').form;
 var testFails = false;
 
 function compare(obj1, obj2, testName) {
@@ -97,7 +97,7 @@ var form4 = {
   confirmPassword: '"Confirm password" must be 2 or more chars.'
 };
 var form4Err = forForms([
-  { regex: 'length must be at least 2 characters long',
+  { regex: 'at least 2 characters long',
     message: '"${key}" must be 2 or more chars.'
   },
   { regex: /required pattern/,
@@ -126,6 +126,44 @@ var form5Err = forForms({
 })(joiErrs);
 compare(form5Err, form5, 'type search');
 
+
+// test 6
+
+var form6 = {
+  name: {
+    message: '"name" must consist of letters, digits or spaces.',
+    name: 'ValidatorError',
+    path: 'name',
+    type: 'string.regex.base'
+  },
+  password: {
+    message: '"password" must be 2 or more chars.',
+    name: 'ValidatorError',
+    path: 'password',
+    type: 'string.min'
+  },
+  confirmPassword: {
+    message: '"Confirm password" must be 2 or more chars.',
+    name: 'ValidatorError',
+    path: 'confirmPassword',
+    type: 'string.min'
+  }
+};
+
+var form6Err = require('./index').mongoose({
+  'string.min': function(c) {
+    return i18n('"${key}" must be ${limit} or more chars.');
+  },
+  'string.regex.base': function(c) {
+    switch (c.pattern.toString()) {
+      case /^[\sa-zA-Z0-9]{5,30}$/.toString():
+        return i18n('"${key}" must consist of letters, digits or spaces.');
+    }
+  }
+})(joiErrs);
+compare(form6Err, form6, 'mongoose');
+
+
 // check results
 
 if (testFails) {
@@ -135,4 +173,3 @@ if (testFails) {
 // helpers
 
 function i18n(str) { return str; }
-

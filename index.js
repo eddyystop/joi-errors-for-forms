@@ -21,11 +21,11 @@ function escapeRegExp(str) {
 
 // Package
 
-module.exports = function joiErrorsForForms(options) {
-  var convert = useJoiMsg;
+function joiErrorsForForms(format, options) {
+  var convert = useNothing;
   if (typeof options === 'string') { convert = useFixedMsg; }
   if (typeof options === 'object') {
-    convert = isArray(options) ? useRegex : useType;
+    convert = isArray(options) ? useJoiMsg : useJoiType;
   }
 
   return function joiErrorsForFormsInner(joiErrs) {
@@ -36,51 +36,70 @@ module.exports = function joiErrorsForForms(options) {
     var newErrs = {};
     for (var i = 0, leni = joiErrs.details.length; i < leni; i++) {
       var detail = joiErrs.details[i];
-      newErrs[detail.path] = convert(detail);
+      var path = detail.path;
+
+      switch (format) {
+        case 'mongoose':
+          newErrs[path] = {
+            message: convert(detail, options),
+            name: 'ValidatorError',
+            path: path,
+            type: detail.type
+          };
+          break;
+        default:
+          newErrs[path] = convert(detail, options);
+      }
     }
 
     return newErrs;
   };
+}
 
-  function useJoiMsg(detail) {
-    return detail.message;
-  }
 
-  function useFixedMsg(detail) {
-    return substituteContext(detail.context, options);
-  }
+function useNothing(detail) {
+  return detail.message;
+}
 
-  function useRegex(detail) {
-    var detailMessage = detail.message;
+function useFixedMsg(detail, options) {
+  return substituteContext(detail.context, options);
+}
 
-    for (var i = 0, leni = options.length; i < leni; i++) {
-      var option = options[i];
-      var regex = option.regex;
+function useJoiMsg(detail, options) {
+  var detailMessage = detail.message;
 
-      if (typeof regex === 'string'
-          ? detailMessage.indexOf(regex) !== -1
-          : detailMessage.search(regex) !== -1) {
-        //return option.message.replace('%s', detail.context.key);
-        return substituteContext(detail.context, option.message);
-      }
+  for (var i = 0, leni = options.length; i < leni; i++) {
+    var option = options[i];
+    var regex = option.regex;
+
+    if (typeof regex === 'string'
+        ? detailMessage.indexOf(regex) !== -1
+        : detailMessage.search(regex) !== -1) {
+      return substituteContext(detail.context, option.message);
     }
-
-    return detailMessage;
   }
 
-  function useType(detail) {
-    var context = detail.context;
-    var message = options[detail.type](context) || detail.message;
-    return substituteContext(context, message);
-  }
+  return detailMessage;
+}
 
-  function substituteContext(context, message) {
-    for (var prop in context) {
-      if (context.hasOwnProperty(prop)) {
-        message = replaceAll(message, '${' + prop + '}', '' + context[prop]);
-      }
+function useJoiType(detail, options) {
+  var context = detail.context;
+  var message = options[detail.type](context) || detail.message;
+  return substituteContext(context, message);
+}
+
+function substituteContext(context, message) {
+  for (var prop in context) {
+    if (context.hasOwnProperty(prop)) {
+      message = replaceAll(message, '${' + prop + '}', '' + context[prop]);
     }
-
-    return message;
   }
+
+  return message;
+}
+
+module.exports = {
+  form: function form(options) { return joiErrorsForForms('form', options); },
+  mongoose: function mongoose(options) { return joiErrorsForForms('mongoose', options); }
 };
+

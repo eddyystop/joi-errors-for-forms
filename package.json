@@ -1,7 +1,7 @@
 {
   "name": "joi-errors-for-forms",
   "version": "0.1.0",
-  "description": "Convert Joi errors to the { name1: text, name2: text } format commonly used with forms.",
+  "description": "Convert Joi errors to { name1: text, name2: text } or to mongoose-like formats.",
   "main": "index.js",
   "scripts": {
     "test": "node test1.js"
