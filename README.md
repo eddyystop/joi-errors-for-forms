@@ -3,7 +3,6 @@ Convert [Joi](https://github.com/hapijs/joi) errors to the { name1: text, name2:
 format commonly used with forms.
 
 [![Build Status](https://travis-ci.org/eddyystop/joi-errors-for-forms.svg?branch=master)](https://travis-ci.org/eddyystop/joi-errors-for-forms)
-[![Coverage Status](https://coveralls.io/repos/github/eddyystop/joi-errors-for-forms/badge.svg?branch=master)](https://coveralls.io/github/eddyystop/joi-errors-for-forms?branch=master)
 
 ## Code Example
 
@@ -76,9 +75,10 @@ Joi.validate(values, schema, options, (joiErr, convertedValues) => {
 
 [Joi](https://github.com/hapijs/joi) is an enterprise strength schema validator and sanitizer
 developed by Walmart.
-Its error reporting however have to be converted for use with web/mobile form handlers.
+Its error reporting however usually has to be reformatted for use with web/mobile forms.
 
-This package converts Joi errors to the commonly used { name1: text, name2: text } format.
+This package converts Joi errors to the commonly used { name1: text, name2: text } format
+used by web/mobile form UI packages.
 
 It also allows you to replace selected messages based on string or regex comparisions.
 After all `"name" with value "j" fails to match the required pattern: /^[\\sa-zA-Z0-9]{5,30}$/'`

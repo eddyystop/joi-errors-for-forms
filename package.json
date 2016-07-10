@@ -4,7 +4,7 @@
   "description": "Convert Joi errors to the { name1: text, name2: text } format commonly used with forms.",
   "main": "index.js",
   "scripts": {
-    "test": "node ./test1.js"
+    "test": "node test1.js"
   },
   "repository": {
     "type": "git",
