@@ -1,12 +1,13 @@
 ## joi-errors-for-forms
-Convert [Joi](https://github.com/hapijs/joi) errors to the { name1: text, name2: text }
+In order to keep a consistent validation API in your app,
+convert [Joi](https://github.com/hapijs/joi) errors to the { name1: text, name2: text }
 format commonly used with forms.
 
 [![Build Status](https://travis-ci.org/eddyystop/joi-errors-for-forms.svg?branch=master)](https://travis-ci.org/eddyystop/joi-errors-for-forms)
 
 ## Code Example
 
-Convert the Joi error messages, using the same message text.
+(1) Convert the Joi error messages, retaining the original message text.
 
 ```javascript
 const Joi = require("joi");
@@ -32,10 +33,48 @@ Joi.validate(values, schema, options, (joiErr, convertedValues) => {
 
 ```
 
-Convert the Joi error messages, using one generic error message.
+
+(2) Replace Joi error message text, using Joi error types. (Recommended.)
 
 ```javascript
-const convertErrs = joiErrorToForms('"%s" is badly formed');
+function i18n(str) { return str; } // internationalization
+
+const convertErrs = joiErrorToForms({
+  'string.min': function(c) {
+    return i18n('"${key}" must be ${limit} or more chars.');
+  },
+  'string.regex.base': function(c) {
+    switch (c.pattern.toString()) {
+      case /^[\sa-zA-Z0-9]{5,30}$/.toString():
+        return i18n('"${key}" must consist of letters, digits or spaces.');
+    }
+  }
+});
+
+Joi.validate(values, schema, options, (joiErr, convertedValues) => {
+  var formErrs = convertErrs(joiErr);
+  // { name: '"name" must consist of letters, digits or spaces.',
+  //   password: '"password" must be 2 or more chars.',
+  //   confirmPassword: '"Confirm password" must be 2 or more chars.'
+  // }
+  ...
+});
+
+```
+
+List of substitution tokens (partial):
+- `${key}` prop name, or label if `.label('...')` was used.
+- `${value}` prop value. Its rudimentally converted to a string.
+- `${pattern}` regex value if `.regex(...)` was used. Its converted to a string.
+- `${limit}` allowed length if string.
+- `${encoding}` string encoding. Could be `undefined`. Its converted to a string.
+Refer to Joi doc for more information.
+
+
+(3) Replace Joi error message text, using one generic error message.
+
+```javascript
+const convertErrs = joiErrorToForms('"${key}" is badly formed');
 
 Joi.validate(values, schema, options, (joiErr, convertedValues) => {
   var formErrs = convertErrs(joiErr);
@@ -48,15 +87,16 @@ Joi.validate(values, schema, options, (joiErr, convertedValues) => {
 
 ```
 
-Convert the Joi error messages, using string and regex searches to convert specific messages.
+
+(4) Replace Joi error message text, using string and regex searches to convert specific messages.
 
 ```javascript
 const convertErrs = joiErrorToForms([
   { regex: 'length must be at least 2 characters long',
-    message: '"%s" must be 2 or more chars.'
+    message: '"${key}" must be 2 or more chars.'
   },
   { regex: /required pattern/,
-    message: '"%s" is badly formed.'
+    message: '"${key}" is badly formed.'
   }
 ]);
 

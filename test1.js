@@ -14,9 +14,8 @@ var joiErrs = {
   isJoi: true,
   name: 'ValidationError',
   // an array of errors
-  details:
-    [ {
-      // string with a description of the error.
+  details: [
+    { // string with a description of the error.
       message: '"name" with value "j" fails to match the required pattern: /^[\\sa-zA-Z0-9]{5,30}$/',
       // dotted path to the key where the error happened.
       path: 'name',
@@ -27,23 +26,25 @@ var joiErrs = {
       { name: undefined,
         pattern: /^[\sa-zA-Z0-9]{5,30}$/,
         value: 'j',
-        key: 'name' } },
-      { message: '"password" length must be at least 2 characters long',
-        path: 'password',
-        type: 'string.min',
-        context:
-        { limit: 2,
-          value: 'z',
-          encoding: undefined,
-          key: 'password' } },
-      { message: '"Confirm password" length must be at least 2 characters long',
-        path: 'confirmPassword',
-        type: 'string.min',
-        context:
-        { limit: 2,
-          value: 'z',
-          encoding: undefined,
-          key: 'Confirm password' } } ],
+        key: 'name' }
+    },
+    { message: '"password" length must be at least 2 characters long',
+      path: 'password',
+      type: 'string.min',
+      context:
+      { limit: 2,
+        value: 'z',
+        encoding: undefined,
+        key: 'password' } },
+    { message: '"Confirm password" length must be at least 2 characters long',
+      path: 'confirmPassword',
+      type: 'string.min',
+      context:
+      { limit: 2,
+        value: 'z',
+        encoding: undefined,
+        key: 'Confirm password' } }
+  ],
   _object:
   { name: 'j',
     email: 'z@z.com',
@@ -71,7 +72,7 @@ var form2 = {
   password: '"password" is badly formed.',
   confirmPassword: '"Confirm password" is badly formed.'
 };
-var form2Err = forForms('"%s" is badly formed.')(joiErrs);
+var form2Err = forForms('"${key}" is badly formed.')(joiErrs);
 compare(form2Err, form2, 'fixed message');
 
 // test 3
@@ -83,7 +84,7 @@ var form3 = {
 };
 var form3Err = forForms([
   { regex: 'fails to match the required pattern: /^[\\sa-zA-Z0-9]',
-    message: '"%s" must consist of letters, digits or spaces.'
+    message: '"${key}" must consist of letters, digits or spaces.'
   }
 ])(joiErrs);
 compare(form3Err, form3, 'string search');
@@ -97,16 +98,41 @@ var form4 = {
 };
 var form4Err = forForms([
   { regex: 'length must be at least 2 characters long',
-    message: '"%s" must be 2 or more chars.'
+    message: '"${key}" must be 2 or more chars.'
   },
   { regex: /required pattern/,
-    message: '"%s" is badly formed.'
+    message: '"${key}" is badly formed.'
   }
 ])(joiErrs);
 compare(form4Err, form4, 'regex search');
+
+// test 5
+
+var form5 = {
+  name: '"name" must consist of letters, digits or spaces.',
+  password: '"password" must be 2 or more chars.',
+  confirmPassword: '"Confirm password" must be 2 or more chars.'
+};
+var form5Err = forForms({
+  'string.min': function(c) {
+    return i18n('"${key}" must be ${limit} or more chars.');
+  },
+  'string.regex.base': function(c) {
+    switch (c.pattern.toString()) {
+      case /^[\sa-zA-Z0-9]{5,30}$/.toString():
+        return i18n('"${key}" must consist of letters, digits or spaces.');
+    }
+  }
+})(joiErrs);
+compare(form5Err, form5, 'type search');
 
 // check results
 
 if (testFails) {
   throw Error('Test failed.')
 }
+
+// helpers
+
+function i18n(str) { return str; }
+
