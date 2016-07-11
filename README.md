@@ -15,7 +15,7 @@ The package has no dependencies.
 
 ## Code Examples
 
-(1) Convert the Joi error messages to the form UI schema, retaining the original message text.
+For the following Joi schema:
 
 ```javascript
 const Joi = require('joi');
@@ -26,16 +26,21 @@ const schema = Joi.object().keys({
   password,
   confirmPassword: password.label('Confirm password'),
 });
+```
 
+(1) Convert the Joi error messages to the form UI schema, retaining the original message text.
+
+```javascript
 const joiToForms = require('joi-errors-to-forms').forms;
 const convertToForms = joiToForms();
 
-Joi.validate(values, schema, options, (joiErr, convertedValues) => {
-  console.log(convertToForms(joiErr));
+Joi.validate(values, schema, options, (errs, convertedValues) => {
+  console.log(convertToForms(errs));
   // { name: '"name" with value "j" fails to match the required pattern: /^[\\sa-zA-Z0-9]{5,30}$/',
   //   password: '"password" length must be at least 2 characters long',
   //   confirmPassword: '"Confirm password" length must be at least 2 characters long'
   // }
+  // or null if no errors.
 });
 ```
 
@@ -48,16 +53,16 @@ const convertToForms = joiToForms({
   'string.min': function() {
     return i18n('"${key}" must be ${limit} or more chars.');
   },
-  'string.regex.base': function(c) {
-    switch (c.pattern.toString()) {
+  'string.regex.base': function(context) {
+    switch (context.pattern.toString()) {
       case /^[\sa-zA-Z0-9]{5,30}$/.toString():
         return i18n('"${key}" must consist of letters, digits or spaces.');
     }
   }
 });
 
-Joi.validate(values, schema, options, (joiErr, convertedValues) => {
-  console.log(convertToForms(joiErr));
+Joi.validate(values, schema, options, (errs, convertedValues) => {
+  console.log(convertToForms(errs));
   // { name: '"name" must consist of letters, digits or spaces.',
   //   password: '"password" must be 2 or more chars.',
   //   confirmPassword: '"Confirm password" must be 2 or more chars.'
@@ -76,8 +81,8 @@ const convertToMongoose = joiToMongoose({
   ... same as above ...
 });
 
-Joi.validate(values, schema, options, (joiErr, convertedValues) => {
-  console.log(convertToMongoose(joiErr));
+Joi.validate(values, schema, options, (errs, convertedValues) => {
+  console.log(convertToMongoose(errs));
   // { name: 
   //     { message: '"name" must consist of letters, digits or spaces.',
   //       name: 'ValidatorError',
@@ -102,7 +107,7 @@ List of substitution tokens. Refer to Joi documentation for more information.
 
 - `${key}` prop name, or label if `.label('...')` was used.
 - `${value}` prop value. Its rudimentally converted to a string.
-- `${pattern}` regex value if `.regex(...)` was used. Its converted to a string.
+- `${pattern}` regex value if `.regex(...)` was involved in the error. Its converted to a string.
 - `${limit}` allowed length of string.
 - `${encoding}` string encoding. Could be `undefined`. Its converted to a string.
 
@@ -115,8 +120,8 @@ It is not converted to what Mongoose would return.
 ```javascript
 const convertToForms = joiToForms('"${key}" is badly formed');
 
-Joi.validate(values, schema, options, (joiErr, convertedValues) => {
-  console.log(convertToForms(joiErr));
+Joi.validate(values, schema, options, (errs, convertedValues) => {
+  console.log(convertToForms(errs));
   // { name: '"name" is badly formed.',
   //   password: '"password" is badly formed.',
   //   confirmPassword: '"Confirm password" is badly formed.'
@@ -138,8 +143,8 @@ const convertToForms = joiToForms([
   }
 ]);
 
-Joi.validate(values, schema, options, (joiErr, convertedValues) => {
-  console.log(convertToForms(joiErr));
+Joi.validate(values, schema, options, (errs, convertedValues) => {
+  console.log(convertToForms(errs));
   // { name: '"name" is badly formed.',
   //   password: '"password" must be 2 or more chars.',
   //   confirmPassword: '"Confirm password" must be 2 or more chars.'
