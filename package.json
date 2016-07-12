@@ -1,6 +1,6 @@
 {
   "name": "joi-errors-for-forms",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Convert Joi errors to form UI or Mongoose schemas, optionally changing the message text.",
   "main": "index.js",
   "scripts": {
