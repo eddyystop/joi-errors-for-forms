@@ -1,13 +1,13 @@
 ## joi-errors-for-forms
 
-In order to keep a consistent validation API in your app,
+In order to keep a consistent validation API in your apps,
 convert the error objects returned by [Joi](https://github.com/hapijs/joi) to either
 
 - the `{ name1: text, name2: text }` schema commonly used with form UIs, or
 - the Mongoose schema
 `{ name1: { message: ..., name: 'ValidatorError', path: ..., type: ... } }`.
 
-The Joi error messages may also be replaced either for clarity or internationalization.
+The Joi error messages may be replaced either for internationalization or clarity.
 
 The package has no dependencies.
 
@@ -19,22 +19,25 @@ For the following Joi schema:
 
 ```javascript
 const Joi = require('joi');
-const name = Joi.string().trim().max(1).regex(/^[\sa-zA-Z0-9]{5,30}$/).required();
+const name = Joi.string().trim().regex(/^[\sa-zA-Z0-9]{5,30}$/).required();
 const password = Joi.string().trim().min(2).max(30).required();
 const schema = Joi.object().keys({
   name,
   password,
   confirmPassword: password.label('Confirm password'),
 });
+const joiOptions = { convert: true, abortEarly: false };
+
+const values = { name: 'j', password: 'z', confirmPassword: 'z' };
 ```
 
-(1) Convert the Joi error messages to the form UI schema, retaining the original message text.
+(1) Convert the Joi messages to the form UI schema, retaining the original message text.
 
 ```javascript
 const joiToForms = require('joi-errors-to-forms').forms;
 const convertToForms = joiToForms();
 
-Joi.validate(values, schema, options, (errs, convertedValues) => {
+Joi.validate(values, schema, joiOptions, (errs, convertedValues) => {
   console.log(convertToForms(errs));
   // { name: '"name" with value "j" fails to match the required pattern: /^[\\sa-zA-Z0-9]{5,30}$/',
   //   password: '"password" length must be at least 2 characters long',
@@ -45,15 +48,13 @@ Joi.validate(values, schema, options, (errs, convertedValues) => {
 ```
 
 
-(2) Convert to the form UI schema. Replace Joi error messages using Joi error types. (Recommended.)
+(2) Convert to the form UI schema. Replace Joi messages using Joi error types. (Recommended.)
 
 ```javascript
 const joiToForms = require('joi-errors-to-forms').forms;
 const convertToForms = joiToForms({
-  'string.min': function() {
-    return i18n('"${key}" must be ${limit} or more chars.');
-  },
-  'string.regex.base': function(context) {
+  'string.min': () => i18n('"${key}" must be ${limit} or more chars.'),
+  'string.regex.base': (context) => {
     switch (context.pattern.toString()) {
       case /^[\sa-zA-Z0-9]{5,30}$/.toString():
         return i18n('"${key}" must consist of letters, digits or spaces.');
@@ -61,7 +62,7 @@ const convertToForms = joiToForms({
   }
 });
 
-Joi.validate(values, schema, options, (errs, convertedValues) => {
+Joi.validate(values, schema, joiOptions, (errs, convertedValues) => {
   console.log(convertToForms(errs));
   // { name: '"name" must consist of letters, digits or spaces.',
   //   password: '"password" must be 2 or more chars.',
@@ -81,7 +82,7 @@ const convertToMongoose = joiToMongoose({
   ... same as above ...
 });
 
-Joi.validate(values, schema, options, (errs, convertedValues) => {
+Joi.validate(values, schema, joiOptions, (errs, convertedValues) => {
   console.log(convertToMongoose(errs));
   // { name: 
   //     { message: '"name" must consist of letters, digits or spaces.',
@@ -115,12 +116,12 @@ Note that `type` retains the Joi value in the Mongoose schema.
 It is not converted to what Mongoose would return.
 
 
-(3) Replace Joi error messages with a generic error message.
+(3) Replace Joi messages with a generic error message.
 
 ```javascript
-const convertToForms = joiToForms('"${key}" is badly formed');
+const convertToForms = joiToForms('"${key}" is badly formed.');
 
-Joi.validate(values, schema, options, (errs, convertedValues) => {
+Joi.validate(values, schema, joiOptions, (errs, convertedValues) => {
   console.log(convertToForms(errs));
   // { name: '"name" is badly formed.',
   //   password: '"password" is badly formed.',
@@ -131,7 +132,7 @@ Joi.validate(values, schema, options, (errs, convertedValues) => {
 ```
 
 
-(4) Replace Joi error messages, by searching for substrings in Joi messages.
+(4) Replace Joi messages, by searching for substrings in Joi messages.
 
 ```javascript
 const convertToForms = joiToForms([
@@ -143,7 +144,7 @@ const convertToForms = joiToForms([
   }
 ]);
 
-Joi.validate(values, schema, options, (errs, convertedValues) => {
+Joi.validate(values, schema, joiOptions, (errs, convertedValues) => {
   console.log(convertToForms(errs));
   // { name: '"name" is badly formed.',
   //   password: '"password" must be 2 or more chars.',
@@ -173,7 +174,7 @@ You can then require the package.
 
 ```javascript
 // ES5
-var  joiErrorsToForms = require('joi-errors-to-forms');
+var joiErrorsToForms = require('joi-errors-to-forms');
 var joiToForms = joiErrorsToForms.forms;
 var joiToMongoose = joiErrorsToForms.mongoose;
 // or ES6
@@ -187,6 +188,22 @@ See Code Examples.
 ## Tests
 
 `npm test` to run tests.
+
+## A Note on Internationalization
+
+The `options` in `Joi.validate(value, schema, options, cb)`supports a
+[`language` option](https://github.com/hapijs/joi/blob/v9.0.0/API.md#validatevalue-schema-options-callback)
+with which you can change
+[Joi error messages](https://github.com/hapijs/joi/blob/v9.0.0/lib/language.js)
+in bulk.
+
+You can then internationalize your field names and regex descriptions in the schema, e.g.
+
+```javascript
+Joi.string().regex(/^[\sa-zA-Z0-9]$/, i18n('letters, number and spaces')).label(i18n('Confirm password'))
+```
+
+These are suitable methods to internationalize the majority of Joi error messages.
 
 ## Contributors
 

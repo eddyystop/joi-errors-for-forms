@@ -102,4 +102,3 @@ module.exports = {
   form: function form(options) { return joiErrorsForForms('form', options); },
   mongoose: function mongoose(options) { return joiErrorsForForms('mongoose', options); }
 };
-

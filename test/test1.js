@@ -1,5 +1,5 @@
 
-var forForms = require('./index').form;
+var forForms = require('../index').form;
 var testFails = false;
 
 function compare(obj1, obj2, testName) {
@@ -150,7 +150,7 @@ var form6 = {
   }
 };
 
-var form6Err = require('./index').mongoose({
+var form6Err = require('../index').mongoose({
   'string.min': function(c) {
     return i18n('"${key}" must be ${limit} or more chars.');
   },

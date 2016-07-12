@@ -4,7 +4,7 @@
   "description": "Convert Joi errors to form UI or Mongoose schemas, optionally changing the message text.",
   "main": "index.js",
   "scripts": {
-    "test": "node test1.js"
+    "test": "node test/test1.js"
   },
   "repository": {
     "type": "git",
