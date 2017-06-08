@@ -178,7 +178,7 @@ var joiErrorsToForms = require('joi-errors-to-forms');
 var joiToForms = joiErrorsToForms.form;
 var joiToMongoose = joiErrorsToForms.mongoose;
 // or ES6
-import { forms as joiToForms, mongoose as joiToMongoose } from 'joi-errors-to-forms';
+import { form as joiToForms, mongoose as joiToMongoose } from 'joi-errors-to-forms';
 ```
 
 ## API Reference
