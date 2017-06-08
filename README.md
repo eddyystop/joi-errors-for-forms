@@ -34,7 +34,7 @@ const values = { name: 'j', password: 'z', confirmPassword: 'z' };
 (1) Convert the Joi messages to the form UI schema, retaining the original message text.
 
 ```javascript
-const joiToForms = require('joi-errors-to-forms').forms;
+const joiToForms = require('joi-errors-to-forms').form;
 const convertToForms = joiToForms();
 
 Joi.validate(values, schema, joiOptions, (errs, convertedValues) => {
@@ -51,7 +51,7 @@ Joi.validate(values, schema, joiOptions, (errs, convertedValues) => {
 (2) Convert to the form UI schema. Replace Joi messages using Joi error types. (Recommended.)
 
 ```javascript
-const joiToForms = require('joi-errors-to-forms').forms;
+const joiToForms = require('joi-errors-to-forms').form;
 const convertToForms = joiToForms({
   'string.min': () => i18n('"${key}" must be ${limit} or more chars.'),
   'string.regex.base': (context) => {
@@ -175,7 +175,7 @@ You can then require the package.
 ```javascript
 // ES5
 var joiErrorsToForms = require('joi-errors-to-forms');
-var joiToForms = joiErrorsToForms.forms;
+var joiToForms = joiErrorsToForms.form;
 var joiToMongoose = joiErrorsToForms.mongoose;
 // or ES6
 import { forms as joiToForms, mongoose as joiToMongoose } from 'joi-errors-to-forms';
