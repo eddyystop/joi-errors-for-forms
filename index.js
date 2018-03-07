@@ -84,7 +84,16 @@ function useJoiMsg(detail, options) {
 
 function useJoiType(detail, options) {
   var context = detail.context;
-  var message = options[detail.type](context) || detail.message;
+  var message;
+
+  if (options[detail.type]) {
+      message = options[detail.type](context)
+  }
+  
+  if (!message) {
+      message = detail.message;
+  }
+
   return substituteContext(context, message);
 }
 
