@@ -36,7 +36,7 @@ function joiErrorsForForms(format, options) {
     var newErrs = {};
     for (var i = 0, leni = joiErrs.details.length; i < leni; i++) {
       var detail = joiErrs.details[i];
-      var path = detail.path;
+      var path = detail.path.join('.');
 
       switch (format) {
         case 'mongoose':
